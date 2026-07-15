@@ -20,8 +20,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">
       {/* 桌面端侧边栏 */}
-      <div className="hidden md:block">
-        <Sidebar />
+      <div className="hidden md:block h-full">
+        <Sidebar className="h-full" />
       </div>
 
       {/* 移动端侧边栏 */}

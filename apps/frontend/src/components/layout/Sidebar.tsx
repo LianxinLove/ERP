@@ -78,7 +78,7 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <div
       className={cn(
-        'relative flex flex-col border-r bg-card/80 backdrop-blur-md transition-all duration-300 ease-out',
+        'relative flex flex-col h-full border-r bg-card/80 backdrop-blur-md transition-all duration-300 ease-out',
         isCollapsed ? 'w-16' : 'w-64',
         className
       )}
@@ -199,7 +199,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
       {/* 侧边栏 */}
       <div
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-out',
+          'fixed top-0 bottom-0 left-0 z-50 h-full w-64 transform transition-transform duration-300 ease-out',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
