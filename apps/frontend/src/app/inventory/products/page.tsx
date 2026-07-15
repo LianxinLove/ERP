@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,162 @@ import { DataTable, Column } from '@/components/data-table/DataTable';
 import { inventoryApi } from '@/api/inventory';
 import type { Product } from '@/types/inventory';
 import { ProductStatus, ProductStatusLabels, ProductStatusColors } from '@/types/inventory';
+
+interface ProductFormProps {
+  formData: {
+    code: string;
+    name: string;
+    specification: string;
+    unit: string;
+    category: string;
+    barcode: string;
+    cost_price: string;
+    selling_price: string;
+    min_stock: string;
+    max_stock: string;
+    lead_time: string;
+    notes: string;
+    status: ProductStatus;
+  };
+  onChange: (data: any) => void;
+  isEdit?: boolean;
+}
+
+const ProductForm = React.memo(function ProductForm({ formData, onChange, isEdit = false }: ProductFormProps) {
+  const handleChange = (field: string, value: any) => {
+    onChange({ ...formData, [field]: value });
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="code">产品编码 *</Label>
+        <Input
+          id="code"
+          value={formData.code}
+          onChange={(e) => handleChange('code', e.target.value)}
+          disabled={isEdit}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="name">产品名称 *</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => handleChange('name', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="specification">规格型号</Label>
+        <Input
+          id="specification"
+          value={formData.specification}
+          onChange={(e) => handleChange('specification', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="unit">单位</Label>
+        <Input
+          id="unit"
+          value={formData.unit}
+          onChange={(e) => handleChange('unit', e.target.value)}
+          placeholder="如：件、个、箱"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="category">分类</Label>
+        <Input
+          id="category"
+          value={formData.category}
+          onChange={(e) => handleChange('category', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="barcode">条码</Label>
+        <Input
+          id="barcode"
+          value={formData.barcode}
+          onChange={(e) => handleChange('barcode', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="cost_price">成本价</Label>
+        <Input
+          id="cost_price"
+          type="number"
+          step="0.01"
+          value={formData.cost_price}
+          onChange={(e) => handleChange('cost_price', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="selling_price">销售价</Label>
+        <Input
+          id="selling_price"
+          type="number"
+          step="0.01"
+          value={formData.selling_price}
+          onChange={(e) => handleChange('selling_price', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="min_stock">最小库存</Label>
+        <Input
+          id="min_stock"
+          type="number"
+          step="0.01"
+          value={formData.min_stock}
+          onChange={(e) => handleChange('min_stock', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="max_stock">最大库存</Label>
+        <Input
+          id="max_stock"
+          type="number"
+          step="0.01"
+          value={formData.max_stock}
+          onChange={(e) => handleChange('max_stock', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="lead_time">采购提前期（天）</Label>
+        <Input
+          id="lead_time"
+          type="number"
+          value={formData.lead_time}
+          onChange={(e) => handleChange('lead_time', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="status">状态</Label>
+        <Select
+          value={formData.status}
+          onValueChange={(value) => handleChange('status', value as ProductStatus)}
+        >
+          <SelectTrigger id="status">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(ProductStatusLabels).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2 col-span-2">
+        <Label htmlFor="notes">备注</Label>
+        <Input
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => handleChange('notes', e.target.value)}
+        />
+      </div>
+    </div>
+  );
+});
 
 export default function ProductsPage() {
   const queryClient = useQueryClient();
@@ -255,136 +411,6 @@ export default function ProductsPage() {
     },
   ];
 
-  const ProductForm = () => (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label htmlFor="code">产品编码 *</Label>
-        <Input
-          id="code"
-          value={formData.code}
-          onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-          disabled={!!selectedProduct}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="name">产品名称 *</Label>
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="specification">规格型号</Label>
-        <Input
-          id="specification"
-          value={formData.specification}
-          onChange={(e) => setFormData({ ...formData, specification: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="unit">单位</Label>
-        <Input
-          id="unit"
-          value={formData.unit}
-          onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-          placeholder="如：件、个、箱"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="category">分类</Label>
-        <Input
-          id="category"
-          value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="barcode">条码</Label>
-        <Input
-          id="barcode"
-          value={formData.barcode}
-          onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="cost_price">成本价</Label>
-        <Input
-          id="cost_price"
-          type="number"
-          step="0.01"
-          value={formData.cost_price}
-          onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="selling_price">销售价</Label>
-        <Input
-          id="selling_price"
-          type="number"
-          step="0.01"
-          value={formData.selling_price}
-          onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="min_stock">最小库存</Label>
-        <Input
-          id="min_stock"
-          type="number"
-          step="0.01"
-          value={formData.min_stock}
-          onChange={(e) => setFormData({ ...formData, min_stock: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="max_stock">最大库存</Label>
-        <Input
-          id="max_stock"
-          type="number"
-          step="0.01"
-          value={formData.max_stock}
-          onChange={(e) => setFormData({ ...formData, max_stock: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="lead_time">采购提前期（天）</Label>
-        <Input
-          id="lead_time"
-          type="number"
-          value={formData.lead_time}
-          onChange={(e) => setFormData({ ...formData, lead_time: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="status">状态</Label>
-        <Select
-          value={formData.status}
-          onValueChange={(value) => setFormData({ ...formData, status: value as ProductStatus })}
-        >
-          <SelectTrigger id="status">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(ProductStatusLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2 col-span-2">
-        <Label htmlFor="notes">备注</Label>
-        <Input
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-        />
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -422,7 +448,11 @@ export default function ProductsPage() {
               填写产品信息，带 * 的为必填项
             </DialogDescription>
           </DialogHeader>
-          <ProductForm />
+          <ProductForm
+            formData={formData}
+            onChange={setFormData}
+            isEdit={false}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
               取消
@@ -443,7 +473,11 @@ export default function ProductsPage() {
               修改产品信息
             </DialogDescription>
           </DialogHeader>
-          <ProductForm />
+          <ProductForm
+            formData={formData}
+            onChange={setFormData}
+            isEdit={true}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               取消

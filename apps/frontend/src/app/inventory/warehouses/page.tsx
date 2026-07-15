@@ -24,6 +24,95 @@ import { DataTable, Column } from '@/components/data-table/DataTable';
 import { inventoryApi } from '@/api/inventory';
 import type { Warehouse } from '@/types/inventory';
 
+interface WarehouseFormProps {
+  formData: {
+    code: string;
+    name: string;
+    address: string;
+    manager_id: string;
+    contact: string;
+    capacity: string;
+    notes: string;
+  };
+  onChange: (data: any) => void;
+  isEdit?: boolean;
+}
+
+const WarehouseForm = React.memo(function WarehouseForm({ formData, onChange, isEdit = false }: WarehouseFormProps) {
+  const handleChange = (field: string, value: string) => {
+    onChange({ ...formData, [field]: value });
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="code">仓库编码 *</Label>
+        <Input
+          id="code"
+          value={formData.code}
+          onChange={(e) => handleChange('code', e.target.value)}
+          disabled={isEdit}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="name">仓库名称 *</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => handleChange('name', e.target.value)}
+        />
+      </div>
+      <div className="space-y-2 col-span-2">
+        <Label htmlFor="address">地址</Label>
+        <Input
+          id="address"
+          value={formData.address}
+          onChange={(e) => handleChange('address', e.target.value)}
+          placeholder="请输入仓库地址"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact">联系电话</Label>
+        <Input
+          id="contact"
+          value={formData.contact}
+          onChange={(e) => handleChange('contact', e.target.value)}
+          placeholder="请输入联系电话"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="manager_id">负责人ID</Label>
+        <Input
+          id="manager_id"
+          type="number"
+          value={formData.manager_id}
+          onChange={(e) => handleChange('manager_id', e.target.value)}
+          placeholder="请输入负责人用户ID"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="capacity">容量（m³）</Label>
+        <Input
+          id="capacity"
+          type="number"
+          step="0.01"
+          value={formData.capacity}
+          onChange={(e) => handleChange('capacity', e.target.value)}
+          placeholder="请输入仓库容量"
+        />
+      </div>
+      <div className="space-y-2 col-span-2">
+        <Label htmlFor="notes">备注</Label>
+        <Input
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => handleChange('notes', e.target.value)}
+        />
+      </div>
+    </div>
+  );
+});
+
 export default function WarehousesPage() {
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -223,75 +312,6 @@ export default function WarehousesPage() {
     },
   ];
 
-  const WarehouseForm = () => (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label htmlFor="code">仓库编码 *</Label>
-        <Input
-          id="code"
-          value={formData.code}
-          onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-          disabled={!!selectedWarehouse}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="name">仓库名称 *</Label>
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2 col-span-2">
-        <Label htmlFor="address">地址</Label>
-        <Input
-          id="address"
-          value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          placeholder="请输入仓库地址"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="contact">联系电话</Label>
-        <Input
-          id="contact"
-          value={formData.contact}
-          onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-          placeholder="请输入联系电话"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="manager_id">负责人ID</Label>
-        <Input
-          id="manager_id"
-          type="number"
-          value={formData.manager_id}
-          onChange={(e) => setFormData({ ...formData, manager_id: e.target.value })}
-          placeholder="请输入负责人用户ID"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="capacity">容量（m³）</Label>
-        <Input
-          id="capacity"
-          type="number"
-          step="0.01"
-          value={formData.capacity}
-          onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-          placeholder="请输入仓库容量"
-        />
-      </div>
-      <div className="space-y-2 col-span-2">
-        <Label htmlFor="notes">备注</Label>
-        <Input
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-        />
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -329,7 +349,11 @@ export default function WarehousesPage() {
               填写仓库信息，带 * 的为必填项
             </DialogDescription>
           </DialogHeader>
-          <WarehouseForm />
+          <WarehouseForm
+            formData={formData}
+            onChange={setFormData}
+            isEdit={false}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
               取消
@@ -350,7 +374,11 @@ export default function WarehousesPage() {
               修改仓库信息
             </DialogDescription>
           </DialogHeader>
-          <WarehouseForm />
+          <WarehouseForm
+            formData={formData}
+            onChange={setFormData}
+            isEdit={true}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               取消

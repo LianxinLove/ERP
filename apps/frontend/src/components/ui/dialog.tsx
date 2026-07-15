@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { Dialog as HeadlessDialog, DialogBackdrop, DialogPanel } from '@headlessui/react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,7 @@ import { cn } from '@/lib/utils';
  * - 键盘交互支持（ESC 关闭）
  * - 点击遮罩关闭
  * - 深色模式支持
+ * - 使用 React Portal 正确渲染到 document.body
  */
 
 interface DialogProps {
@@ -24,7 +26,12 @@ interface DialogProps {
 
 export function Dialog({ open, onOpenChange, children }: DialogProps) {
   return (
-    <HeadlessDialog open={open} onClose={onOpenChange} className="relative z-50">
+    <HeadlessDialog
+      open={open}
+      onClose={onOpenChange}
+      className="relative z-50"
+      autoFocus={false}
+    >
       {children}
     </HeadlessDialog>
   );
@@ -35,10 +42,24 @@ export function DialogTrigger({ asChild = false, children }: { asChild?: boolean
 }
 
 export function DialogPortal({ children }: { children: React.ReactNode }) {
-  return (
+  // 使用 React Portal 将内容渲染到 document.body
+  // 这样可以避免层级和焦点管理问题
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex w-screen items-center justify-center p-4">
       {children}
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -64,6 +85,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             'relative w-full max-w-lg transform rounded-lg border bg-background p-6 shadow-lg transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[open]:translate-y-0 data-[open]:opacity-100',
             className
           )}
+          // 防止 DialogPanel 本身获得焦点，确保内部输入框可以正常聚焦
+          tabIndex={-1}
           {...props}
         >
           {children}

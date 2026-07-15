@@ -37,6 +37,164 @@ import {
   TransferStatusColors,
 } from '@/types/inventory';
 
+interface TransferItem {
+  product_id: string;
+  quantity: string;
+  notes?: string;
+}
+
+interface TransferFormProps {
+  formData: {
+    from_warehouse_id: string;
+    to_warehouse_id: string;
+    transfer_date: string;
+    notes: string;
+    items: TransferItem[];
+  };
+  warehouses: Warehouse[];
+  products: Product[];
+  onChange: (data: any) => void;
+  onAddItem: () => void;
+  onRemoveItem: (index: number) => void;
+  onUpdateItem: (index: number, field: string, value: string) => void;
+}
+
+const TransferForm = React.memo(function TransferForm({
+  formData,
+  warehouses,
+  products,
+  onChange,
+  onAddItem,
+  onRemoveItem,
+  onUpdateItem,
+}: TransferFormProps) {
+  const handleChange = (field: string, value: string) => {
+    onChange({ ...formData, [field]: value });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="from_warehouse">调出仓库 *</Label>
+          <Select
+            value={formData.from_warehouse_id}
+            onValueChange={(value) => handleChange('from_warehouse_id', value)}
+          >
+            <SelectTrigger id="from_warehouse">
+              <SelectValue placeholder="选择调出仓库" />
+            </SelectTrigger>
+            <SelectContent>
+              {warehouses.map((wh) => (
+                <SelectItem key={wh.id} value={wh.id.toString()}>
+                  {wh.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="to_warehouse">调入仓库 *</Label>
+          <Select
+            value={formData.to_warehouse_id}
+            onValueChange={(value) => handleChange('to_warehouse_id', value)}
+          >
+            <SelectTrigger id="to_warehouse">
+              <SelectValue placeholder="选择调入仓库" />
+            </SelectTrigger>
+            <SelectContent>
+              {warehouses.map((wh) => (
+                <SelectItem key={wh.id} value={wh.id.toString()}>
+                  {wh.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="transfer_date">调拨日期 *</Label>
+        <Input
+          id="transfer_date"
+          type="date"
+          value={formData.transfer_date}
+          onChange={(e) => handleChange('transfer_date', e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label>调拨明细 *</Label>
+          <Button type="button" variant="outline" size="sm" onClick={onAddItem}>
+            <Plus className="h-4 w-4 mr-1" />
+            添加明细
+          </Button>
+        </div>
+        {formData.items.length === 0 ? (
+          <div className="text-center py-4 text-muted-foreground text-sm border rounded-md">
+            暂无明细，请点击"添加明细"添加
+          </div>
+        ) : (
+          <div className="space-y-2 border rounded-md p-3">
+            {formData.items.map((item, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Select
+                  value={item.product_id}
+                  onValueChange={(value) => onUpdateItem(index, 'product_id', value)}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="选择产品" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((p) => (
+                      <SelectItem key={p.id} value={p.id.toString()}>
+                        {p.code} - {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="数量"
+                  value={item.quantity}
+                  onChange={(e) => onUpdateItem(index, 'quantity', e.target.value)}
+                  className="w-24"
+                />
+                <Input
+                  placeholder="备注"
+                  value={item.notes || ''}
+                  onChange={(e) => onUpdateItem(index, 'notes', e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemoveItem(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="notes">备注</Label>
+        <Input
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => handleChange('notes', e.target.value)}
+          placeholder="请输入备注信息"
+        />
+      </div>
+    </div>
+  );
+});
+
 export default function TransfersPage() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -246,134 +404,6 @@ export default function TransfersPage() {
     },
   ];
 
-  const TransferForm = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="from_warehouse">调出仓库 *</Label>
-          <Select
-            value={formData.from_warehouse_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, from_warehouse_id: value })
-            }
-          >
-            <SelectTrigger id="from_warehouse">
-              <SelectValue placeholder="选择调出仓库" />
-            </SelectTrigger>
-            <SelectContent>
-              {warehouses.map((wh) => (
-                <SelectItem key={wh.id} value={wh.id.toString()}>
-                  {wh.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="to_warehouse">调入仓库 *</Label>
-          <Select
-            value={formData.to_warehouse_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, to_warehouse_id: value })
-            }
-          >
-            <SelectTrigger id="to_warehouse">
-              <SelectValue placeholder="选择调入仓库" />
-            </SelectTrigger>
-            <SelectContent>
-              {warehouses.map((wh) => (
-                <SelectItem key={wh.id} value={wh.id.toString()}>
-                  {wh.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="transfer_date">调拨日期 *</Label>
-        <Input
-          id="transfer_date"
-          type="date"
-          value={formData.transfer_date}
-          onChange={(e) =>
-            setFormData({ ...formData, transfer_date: e.target.value })
-          }
-        />
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>调拨明细 *</Label>
-          <Button type="button" variant="outline" size="sm" onClick={addItem}>
-            <Plus className="h-4 w-4 mr-1" />
-            添加明细
-          </Button>
-        </div>
-        {formData.items.length === 0 ? (
-          <div className="text-center py-4 text-muted-foreground text-sm border rounded-md">
-            暂无明细，请点击"添加明细"添加
-          </div>
-        ) : (
-          <div className="space-y-2 border rounded-md p-3">
-            {formData.items.map((item, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <Select
-                  value={item.product_id}
-                  onValueChange={(value) => updateItem(index, 'product_id', value)}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="选择产品" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((p) => (
-                      <SelectItem key={p.id} value={p.id.toString()}>
-                        {p.code} - {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="数量"
-                  value={item.quantity}
-                  onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                  className="w-24"
-                />
-                <Input
-                  placeholder="备注"
-                  value={item.notes || ''}
-                  onChange={(e) => updateItem(index, 'notes', e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeItem(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="notes">备注</Label>
-        <Input
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          placeholder="请输入备注信息"
-        />
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -429,7 +459,15 @@ export default function TransfersPage() {
               创建仓库间库存调拨单，填写调拨信息和明细
             </DialogDescription>
           </DialogHeader>
-          <TransferForm />
+          <TransferForm
+            formData={formData}
+            warehouses={warehouses}
+            products={products}
+            onChange={setFormData}
+            onAddItem={addItem}
+            onRemoveItem={removeItem}
+            onUpdateItem={updateItem}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
               取消
